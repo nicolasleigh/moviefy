@@ -3,16 +3,20 @@ require('express-async-errors');
 const morgan = require('morgan');
 require('dotenv').config();
 require('./db');
-const userRouter = require('./routes/user');
 const { errorHandler } = require('./middlewares/error');
 const cors = require('cors');
 const { handleNotFound } = require('./utils/helper');
+const userRouter = require('./routes/user');
+const actorRouter = require('./routes/actor');
+const movieRouter = require('./routes/movie');
 
 const app = express();
 app.use(cors()); // for cross origin resource sharing
 app.use(express.json()); // for parsing application/json
 app.use(morgan('dev'));
 app.use('/api/user', userRouter);
+app.use('/api/actor', actorRouter);
+app.use('/api/movie', movieRouter);
 
 app.use('/*', handleNotFound);
 
