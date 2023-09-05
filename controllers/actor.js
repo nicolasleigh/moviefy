@@ -20,7 +20,7 @@ exports.createActor = async (req, res) => {
   }
 
   await newActor.save();
-  res.status(201).json(formateActor(newActor));
+  res.status(201).json({ actor: formateActor(newActor) });
 };
 
 exports.updateActor = async (req, res) => {
@@ -91,7 +91,7 @@ exports.searchActor = async (req, res) => {
 
   const actors = result.map((actor) => formateActor(actor));
 
-  res.json(actors);
+  res.json({ results: actors });
 };
 
 exports.getLatestActors = async (req, res) => {

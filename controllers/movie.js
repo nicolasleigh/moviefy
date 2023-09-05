@@ -64,34 +64,35 @@ exports.createMovie = async (req, res) => {
   }
 
   // uploading poster
-  const {
-    secure_url: url,
-    public_id,
-    responsive_breakpoints,
-  } = await cloudinary.uploader.upload(file.path, {
-    transformation: {
-      width: 1280,
-      height: 720,
-    },
-    // https://www.responsivebreakpoints.com/
-    // https://cloudinary.com/documentation/image_upload_api_reference#upload_optional_parameters
-    responsive_breakpoints: {
-      create_derived: true,
-      max_width: 640,
-      max_images: 3,
-    },
-  });
+  if (file) {
+    const {
+      secure_url: url,
+      public_id,
+      responsive_breakpoints,
+    } = await cloudinary.uploader.upload(file.path, {
+      transformation: {
+        width: 1280,
+        height: 720,
+      },
+      // https://www.responsivebreakpoints.com/
+      // https://cloudinary.com/documentation/image_upload_api_reference#upload_optional_parameters
+      responsive_breakpoints: {
+        create_derived: true,
+        max_width: 640,
+        max_images: 3,
+      },
+    });
 
-  const finalPoster = { url, public_id, responsive: [] };
-  const { breakpoints } = responsive_breakpoints[0];
-  if (breakpoints.length) {
-    for (let imgObj of breakpoints) {
-      const { secure_url } = imgObj;
-      finalPoster.responsive.push(secure_url);
+    const finalPoster = { url, public_id, responsive: [] };
+    const { breakpoints } = responsive_breakpoints[0];
+    if (breakpoints.length) {
+      for (let imgObj of breakpoints) {
+        const { secure_url } = imgObj;
+        finalPoster.responsive.push(secure_url);
+      }
     }
+    newMovie.poster = finalPoster;
   }
-
-  newMovie.poster = finalPoster;
 
   await newMovie.save();
 
