@@ -1,5 +1,5 @@
 const cloudinary = require('../cloud');
-const { sendError } = require('../utils/helper');
+const { sendError, formateActor } = require('../utils/helper');
 const Movie = require('../models/movie');
 const { isValidObjectId } = require('mongoose');
 
@@ -156,12 +156,13 @@ exports.updateMovieWithoutPoster = async (req, res) => {
   res.json({ message: 'Movie is updated', movie });
 };
 
-exports.updateMovieWithPoster = async (req, res) => {
+exports.updateMovie = async (req, res) => {
   const { movieId } = req.params;
+  const { file } = req;
 
   if (!isValidObjectId(movieId)) return sendError(res, 'Invalid movie id!');
 
-  if (!req.file) return sendError(res, 'Movie poster is missing!');
+  // if (!req.file) return sendError(res, 'Movie poster is missing!');
 
   const movie = await Movie.findById(movieId);
   if (!movie) return sendError(res, 'Movie not found!', 404);
@@ -189,7 +190,6 @@ exports.updateMovieWithPoster = async (req, res) => {
   movie.genres = genres;
   movie.tags = tags;
   movie.cast = cast;
-  movie.trailer = trailer;
   movie.language = language;
 
   if (director) {
@@ -208,47 +208,59 @@ exports.updateMovieWithPoster = async (req, res) => {
   }
 
   // update poster
-  // removing poster from cloud if there is any
-  const posterID = movie.poster?.public_id;
-  if (posterID) {
-    const { result } = await cloudinary.uploader.destroy(posterID);
-    if (result !== 'ok')
-      return sendError(res, 'Could not update poster at the moment!');
-  }
 
-  // uploading poster
-  const {
-    secure_url: url,
-    public_id,
-    responsive_breakpoints,
-  } = await cloudinary.uploader.upload(req.file.path, {
-    transformation: {
-      width: 1280,
-      height: 720,
-    },
-    // https://www.responsivebreakpoints.com/
-    // https://cloudinary.com/documentation/image_upload_api_reference#upload_optional_parameters
-    responsive_breakpoints: {
-      create_derived: true,
-      max_width: 640,
-      max_images: 3,
-    },
-  });
-
-  const finalPoster = { url, public_id, responsive: [] };
-  const { breakpoints } = responsive_breakpoints[0];
-  if (breakpoints.length) {
-    for (let imgObj of breakpoints) {
-      const { secure_url } = imgObj;
-      finalPoster.responsive.push(secure_url);
+  if (file) {
+    // removing poster from cloud if there is any
+    const posterID = movie.poster?.public_id;
+    if (posterID) {
+      const { result } = await cloudinary.uploader.destroy(posterID);
+      if (result !== 'ok')
+        return sendError(res, 'Could not update poster at the moment!');
     }
-  }
 
-  movie.poster = finalPoster;
+    // uploading poster
+    const {
+      secure_url: url,
+      public_id,
+      responsive_breakpoints,
+    } = await cloudinary.uploader.upload(req.file.path, {
+      transformation: {
+        width: 1280,
+        height: 720,
+      },
+      // https://www.responsivebreakpoints.com/
+      // https://cloudinary.com/documentation/image_upload_api_reference#upload_optional_parameters
+      responsive_breakpoints: {
+        create_derived: true,
+        max_width: 640,
+        max_images: 3,
+      },
+    });
+
+    const finalPoster = { url, public_id, responsive: [] };
+    const { breakpoints } = responsive_breakpoints[0];
+    if (breakpoints.length) {
+      for (let imgObj of breakpoints) {
+        const { secure_url } = imgObj;
+        finalPoster.responsive.push(secure_url);
+      }
+    }
+
+    movie.poster = finalPoster;
+  }
 
   await movie.save();
 
-  res.json({ message: 'Movie is updated', movie });
+  res.json({
+    message: 'Movie is updated',
+    movie: {
+      id: movie._id,
+      title: movie.title,
+      poster: movie.poster?.url,
+      genres: movie.genres,
+      status: movie.status,
+    },
+  });
 };
 
 exports.removeMovie = async (req, res) => {
@@ -287,13 +299,11 @@ exports.removeMovie = async (req, res) => {
 };
 
 exports.getMovies = async (req, res) => {
-  const { pageNo = 0, limit = 2 } = req.query;
-  console.log('first');
+  const { pageNo = 0, limit = 10 } = req.query;
   const movies = await Movie.find({})
     .sort({ createdAt: -1 })
     .skip(parseInt(pageNo) * parseInt(limit))
     .limit(parseInt(limit));
-  console.log(movies);
 
   const results = movies.map((movie) => ({
     id: movie._id,
@@ -304,4 +314,37 @@ exports.getMovies = async (req, res) => {
   }));
 
   res.json({ movies: results });
+};
+
+exports.getMovieForUpdate = async (req, res) => {
+  const { movieId } = req.params;
+
+  if (!isValidObjectId(movieId)) return sendError(res, 'Invalid movie id!');
+
+  const movie = await Movie.findById(movieId).populate(
+    'director writers cast.actor'
+  );
+
+  res.json({
+    movie: {
+      id: movie._id,
+      title: movie.title,
+      storyLine: movie.storyLine,
+      poster: movie.poster?.url,
+      releseDate: movie.releseDate,
+      status: movie.status,
+      type: movie.type,
+      genres: movie.genres,
+      tags: movie.tags,
+      language: movie.language,
+      director: formateActor(movie.director),
+      writers: movie.writers.map((w) => formateActor(w)),
+      cast: movie.cast.map((c) => ({
+        id: c.id,
+        profile: formateActor(c.actor),
+        roleAs: c.roleAs,
+        leadActor: c.leadActor,
+      })),
+    },
+  });
 };

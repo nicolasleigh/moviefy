@@ -48,7 +48,8 @@ const movieSchema = mongoose.Schema(
     ],
     writers: [
       {
-        type: { type: mongoose.Schema.Types.ObjectId, ref: 'Actor' },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Actor',
       },
     ],
     poster: {
