@@ -58,7 +58,7 @@ exports.updateActor = async (req, res) => {
 
   await actor.save();
 
-  res.status(201).json(formateActor(actor));
+  res.status(201).json({ actor: formateActor(actor) });
 };
 
 exports.removeActor = async (req, res) => {
@@ -85,9 +85,13 @@ exports.removeActor = async (req, res) => {
 };
 
 exports.searchActor = async (req, res) => {
+  // const result = await Actor.find({ $text: { $search: `"${query.name}"` } });
+  // const { name } = req.query;
+  // if (!name.trim()) return sendError(res, 'Invalid request!');
   const { query } = req;
-  // MondoDB text search
-  const result = await Actor.find({ $text: { $search: `"${query.name}"` } });
+  const result = await Actor.find({
+    name: { $regex: query.name, $options: 'i' },
+  });
 
   const actors = result.map((actor) => formateActor(actor));
 
