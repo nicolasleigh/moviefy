@@ -418,7 +418,7 @@ exports.getSingleMovie = async (req, res) => {
   //   reviews.reviewCount = reviewCount;
   // }
 
-  const reviews = getAverageRatings(movie._id);
+  const reviews = await getAverageRatings(movie._id);
 
   const {
     _id: id,
@@ -492,7 +492,7 @@ exports.getRelatedMovies = async (req, res) => {
   };
   const relatedMovies = await Promise.all(movies.map(mapMovies));
 
-  res.json({ relatedMovies });
+  res.json({ movies: relatedMovies });
 };
 
 exports.getTopRatedMovies = async (req, res) => {
