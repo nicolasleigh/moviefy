@@ -22,19 +22,19 @@ exports.generateMailTransporter = () =>
     });
 
 exports.sendEmail = async (name, email, subject, htmlContent) => {
-    const defaultClient = SibApiV3Sdk.ApiClient.instance;
+    let defaultClient = SibApiV3Sdk.ApiClient.instance;
 
     // Configure API key authorization: api-key
-    const apiKey = defaultClient.authentications['api-key'];
+    let apiKey = defaultClient.authentications['api-key'];
     apiKey.apiKey = process.env.BREVO_API_KEY;
 
     // Uncomment below two lines to configure authorization using: partner-key
-    // const  partnerKey = defaultClient.authentications['partner-key'];
+    // let  partnerKey = defaultClient.authentications['partner-key'];
     // partnerKey.apiKey = 'YOUR API KEY';
 
-    const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
+    let apiInstance = new SibApiV3Sdk.TransactionalEmailsApi();
 
-    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
+    let sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail(); // SendSmtpEmail | Values to send a transactional email
 
     sendSmtpEmail = {
         to: [

@@ -54,7 +54,7 @@ exports.create = async (req, res) => {
     //   `,
     // });
 
-    const htmlContent = `
+    let htmlContent = `
   <p>Your verification OTP</p>
   <h1>${OTP}</h1>
   `;
@@ -167,7 +167,7 @@ exports.resendEmailVerificationToken = async (req, res) => {
     // `,
     // });
 
-    const htmlContent = `
+    let htmlContent = `
     <p>Your verification OTP</p>
     <h1>${OTP}</h1>
   `;
@@ -202,7 +202,7 @@ exports.forgetPassword = async (req, res) => {
     await newPasswordResetToken.save();
 
     // const resetPasswordUrl = `http://localhost:5173/auth/reset-password?token=${token}&id=${user._id}`;
-    const resetPasswordUrl = `${process.env.RESET_PASSWORD_URL}/auth/reset-password?token=${token}&id=${user._id}`;
+    let resetPasswordUrl = `${process.env.RESET_PASSWORD_URL}/auth/reset-password?token=${token}&id=${user._id}`;
 
     // const transport = generateMailTransporter();
 
@@ -216,7 +216,7 @@ exports.forgetPassword = async (req, res) => {
     // `,
     // });
 
-    const htmlContent = `
+    let htmlContent = `
      <p>Click here to reset password</p>
      <a href="${resetPasswordUrl}">Reset Password</a>
   `;
