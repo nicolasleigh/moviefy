@@ -1,14 +1,15 @@
-const { check, validationResult } = require('express-validator');
+const { check, validationResult, body } = require('express-validator');
 const genres = require('../utils/genres');
 const { isValidObjectId } = require('mongoose');
 
+// ValidationChain
+// https://express-validator.github.io/docs/api/validation-chain
 exports.userValidator = [
-  check('name').trim().not().isEmpty().withMessage('Name is missing!'),
+  check('name').trim().notEmpty().withMessage('Name is missing!'),
   check('email').normalizeEmail().isEmail().withMessage('Email is invalid!'),
   check('password')
     .trim()
-    .not()
-    .isEmpty()
+    .notEmpty()
     .withMessage('Password is missing!')
     .isLength({ min: 8, max: 20 })
     .withMessage('Password must be between 8 to 20 characters long!'),
@@ -17,8 +18,7 @@ exports.userValidator = [
 exports.validatePassword = [
   check('newPassword')
     .trim()
-    .not()
-    .isEmpty()
+    .notEmpty()
     .withMessage('Password is missing!')
     .isLength({ min: 8, max: 20 })
     .withMessage('Password must be between 8 to 20 characters long!'),
@@ -26,37 +26,26 @@ exports.validatePassword = [
 
 exports.signInValidator = [
   check('email').normalizeEmail().isEmail().withMessage('Email is invalid!!!'),
-  check('password').trim().not().isEmpty().withMessage('Password is missing!'),
+  check('password').trim().notEmpty().withMessage('Password is missing!'),
 ];
 
 exports.actorInfoValidator = [
-  check('name').trim().not().isEmpty().withMessage('Actor name is missing!'),
-  check('about')
-    .trim()
-    .not()
-    .isEmpty()
-    .withMessage('About is a required field!'),
-  check('gender')
-    .trim()
-    .not()
-    .isEmpty()
-    .withMessage('Gender is a required field!'),
+  check('name').trim().notEmpty().withMessage('Actor name is missing!'),
+  check('about').trim().notEmpty().withMessage('About is a required field!'),
+  check('gender').trim().notEmpty().withMessage('Gender is a required field!'),
 ];
 
 exports.validateMovie = [
-  check('title').trim().not().isEmpty().withMessage('Title is missing!'),
-  check('storyLine')
-    .trim()
-    .not()
-    .isEmpty()
-    .withMessage('Storyline is missing!'),
-  check('language').trim().not().isEmpty().withMessage('language is missing!'),
-  check('releseDate').isDate().withMessage('Relese date is missing!'),
-  check('status')
+  // check('title').trim().notEmpty().withMessage('Title is missing!'),
+  body('title', 'Title is missing!').trim().notEmpty(),
+  body('storyLine').trim().notEmpty().withMessage('Storyline is missing!'),
+  body('language').trim().notEmpty().withMessage('language is missing!'),
+  body('releseDate').isDate().withMessage('Relese date is missing!'),
+  body('status')
     .isIn(['public', 'private'])
     .withMessage('Movie status must be public or private!'),
-  check('type').trim().not().isEmpty().withMessage('Movie type is missing!'),
-  check('genres')
+  body('type').trim().notEmpty().withMessage('Movie type is missing!'),
+  body('genres')
     .isArray()
     .withMessage('Genres must be an array!')
     .custom((value) => {
@@ -65,7 +54,7 @@ exports.validateMovie = [
       }
       return true;
     }),
-  check('tags')
+  body('tags')
     .isArray({ min: 1 })
     .withMessage('Tags must be an array of strings!')
     .custom((tags) => {
@@ -75,7 +64,7 @@ exports.validateMovie = [
       }
       return true;
     }),
-  check('cast')
+  body('cast')
     .isArray()
     .withMessage('Cast must be an array of objects!')
     .custom((cast) => {
@@ -119,8 +108,10 @@ exports.validateRatings = check(
 ).isFloat({ min: 0, max: 10 });
 
 exports.validate = (req, res, next) => {
+  // validationResult
+  // https://express-validator.github.io/docs/api/validation-result
   const error = validationResult(req).array();
-  console.log('validate error', error);
+  // console.log('validate error', error);
   if (error.length) {
     return res.json({ error: error[0].msg });
   }

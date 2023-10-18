@@ -6,12 +6,13 @@ exports.sendError = (res, error, statusCode = 401) => {
   res.status(statusCode).json({ error });
 };
 
+// https://nodejs.org/api/crypto.html#cryptorandombytessize-callback
 exports.generateRandomByte = () => {
   return new Promise((resolve, reject) => {
     crypto.randomBytes(30, (err, buff) => {
       if (err) reject(err);
       const buffString = buff.toString('hex');
-      console.log(buffString);
+      // console.log(buffString);
       resolve(buffString);
     });
   });
@@ -47,14 +48,14 @@ exports.formateActor = (actor) => {
 
 exports.averageRatingPipeline = (movieId) => {
   return [
-    {
-      $lookup: {
-        from: 'Review',
-        localField: 'rating',
-        foreignField: '_id',
-        as: 'avgRat',
-      },
-    },
+    // {
+    //   $lookup: {
+    //     from: 'Review',
+    //     localField: 'rating',
+    //     foreignField: '_id',
+    //     as: 'avgRat',
+    //   },
+    // },
     {
       $match: { parentMovie: movieId },
     },
@@ -74,14 +75,14 @@ exports.averageRatingPipeline = (movieId) => {
 
 exports.relatedMovieAggregation = (tags, movieId) => {
   return [
-    {
-      $lookup: {
-        from: 'Movie',
-        localField: 'tags',
-        foreignField: '_id',
-        as: 'relatedMovies',
-      },
-    },
+    // {
+    //   $lookup: {
+    //     from: 'Movie',
+    //     localField: 'tags',
+    //     foreignField: '_id',
+    //     as: 'relatedMovies',
+    //   },
+    // },
     {
       $match: {
         tags: { $in: [...tags] },
@@ -110,14 +111,14 @@ exports.topRatedMoviesPipeline = (type) => {
   if (type) matchOptions.type = { $eq: type };
 
   return [
-    {
-      $lookup: {
-        from: 'Movie',
-        localField: 'reviews',
-        foreignField: '_id',
-        as: 'topRated',
-      },
-    },
+    // {
+    //   $lookup: {
+    //     from: 'Movie',
+    //     localField: 'reviews',
+    //     foreignField: '_id',
+    //     as: 'topRated',
+    //   },
+    // },
     {
       $match: matchOptions,
     },

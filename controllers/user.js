@@ -7,7 +7,7 @@ const { generateOTP, generateMailTransporter } = require('../utils/mail');
 const { sendError, generateRandomByte } = require('../utils/helper');
 
 exports.create = async (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   // without app.use(express.json()) middleware, req.body will be undefined
   const { name, email, password } = req.body;
 
@@ -31,6 +31,14 @@ exports.create = async (req, res) => {
 
   // send that otp to our user
   const transport = generateMailTransporter();
+
+  transport.verify((error, success) => {
+    if (error) {
+      console.log(error);
+    } else {
+      console.log('Server is ready to take our messages');
+    }
+  });
 
   transport.sendMail({
     from: 'verification@reviewapp.com',
@@ -157,7 +165,7 @@ exports.forgetPassword = async (req, res) => {
     );
 
   const token = await generateRandomByte();
-  const newPasswordResetToken = await PasswordResetToken({
+  const newPasswordResetToken = await new PasswordResetToken({
     owner: user._id,
     token,
   });

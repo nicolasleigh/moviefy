@@ -26,19 +26,6 @@ app.use('/*', handleNotFound);
 
 app.use(errorHandler);
 
-// app.post(
-//   '/sign-in',
-//   (req, res, next) => {
-//     const { email, password } = req.body;
-//     if (!email || !password)
-//       return res.json({ error: 'email/password missing!' });
-//     next();
-//   },
-//   (req, res) => {
-//     res.send('<h1>hello world about</h1>');
-//   }
-// );
-
 const PORT = process.env.PORT || 8000;
 
 app.listen(PORT, () => {

@@ -59,7 +59,7 @@ router.patch(
   isAuth,
   isAdmin,
   uploadImage.single('poster'),
-  parseData,
+  parseData, // why use parseData?
   validateMovie,
   validate,
   updateMovie

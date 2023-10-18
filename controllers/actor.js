@@ -12,7 +12,7 @@ exports.createActor = async (req, res) => {
   const { file } = req;
 
   const newActor = new Actor({ name, about, gender });
-  // console.log(file);
+  console.log(file);
 
   if (file) {
     const { url, public_id } = await uploadImageToCloud(file.path);
@@ -99,7 +99,7 @@ exports.searchActor = async (req, res) => {
 };
 
 exports.getLatestActors = async (req, res) => {
-  const result = await Actor.find().sort({ createdAt: '-1' }).limit(12);
+  const result = await Actor.find().sort({ createdAt: 'desc' }).limit(12);
 
   const actors = result.map((actor) => formateActor(actor));
 

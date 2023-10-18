@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 
+// SchemaTypes
 const actorSchema = mongoose.Schema(
   {
     name: {
@@ -27,6 +27,7 @@ const actorSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+// Text Index
 actorSchema.index({ name: 'text' });
 
 module.exports = mongoose.model('Actor', actorSchema);

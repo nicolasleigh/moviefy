@@ -9,7 +9,7 @@ const {
 } = require('../utils/helper');
 const Movie = require('../models/movie');
 const Review = require('../models/review');
-const { isValidObjectId, default: mongoose } = require('mongoose');
+const { isValidObjectId } = require('mongoose');
 
 exports.uploadTrailer = async (req, res) => {
   const { file } = req;
@@ -296,6 +296,7 @@ exports.removeMovie = async (req, res) => {
 
   const { result } = await cloudinary.uploader.destroy(trailerId, {
     resource_type: 'video',
+    //  Default: image.
   });
 
   if (result !== 'ok')
@@ -330,6 +331,7 @@ exports.getMovieForUpdate = async (req, res) => {
 
   if (!isValidObjectId(movieId)) return sendError(res, 'Invalid movie id!');
 
+  // Populating Multiple Paths in Middleware
   const movie = await Movie.findById(movieId).populate(
     'director writers cast.actor'
   );
@@ -363,17 +365,16 @@ exports.searchMovies = async (req, res) => {
 
   if (!title.trim()) return sendError(res, 'Invalid requests!');
   const movies = await Movie.find({ title: { $regex: title, $options: 'i' } });
-  res.json({
-    results: movies.map((m) => {
-      return {
-        id: m._id,
-        title: m.title,
-        poster: m.poster?.url,
-        genres: m.genres,
-        status: m.status,
-      };
-    }),
-  });
+
+  const results = movies.map((m) => ({
+    id: m._id,
+    title: m.title,
+    poster: m.poster?.url,
+    genres: m.genres,
+    status: m.status,
+  }));
+
+  res.json({ results });
 };
 
 exports.getLatestUploads = async (req, res) => {
@@ -383,16 +384,15 @@ exports.getLatestUploads = async (req, res) => {
     .sort('-createdAt')
     .limit(parseInt(limit));
 
-  const movies = results.map((m) => {
-    return {
-      id: m._id,
-      title: m.title,
-      storyLine: m.storyLine,
-      poster: m.poster?.url,
-      responsivePosters: m.poster.responsive,
-      trailer: m.trailer?.url,
-    };
-  });
+  const movies = results.map((m) => ({
+    id: m._id,
+    title: m.title,
+    storyLine: m.storyLine,
+    poster: m.poster?.url,
+    responsivePosters: m.poster.responsive,
+    trailer: m.trailer?.url,
+  }));
+
   res.json({ movies });
 };
 
@@ -468,7 +468,8 @@ exports.getSingleMovie = async (req, res) => {
         id: director._id,
         name: director.name,
       },
-      reviews: { ...reviews },
+      reviews,
+      // reviews: { ...reviews },
     },
   });
 };
@@ -482,6 +483,7 @@ exports.getRelatedMovies = async (req, res) => {
   const movies = await Movie.aggregate(
     relatedMovieAggregation(movie.tags, movie._id)
   );
+  // console.log('controllers-movie: ', movies);
 
   const mapMovies = async (m) => {
     const reviews = await getAverageRatings(m._id);
@@ -490,7 +492,8 @@ exports.getRelatedMovies = async (req, res) => {
       title: m.title,
       poster: m.poster,
       responsivePosters: m.responsivePosters,
-      reviews: { ...reviews },
+      reviews,
+      // reviews: { ...reviews },
     };
   };
   const relatedMovies = await Promise.all(movies.map(mapMovies));
@@ -511,7 +514,7 @@ exports.getTopRatedMovies = async (req, res) => {
       title: m.title,
       poster: m.poster,
       responsivePosters: m.responsivePosters,
-      reviews: { ...reviews },
+      reviews,
     };
   };
   const topRatedMovies = await Promise.all(movies.map(mapMovies));
@@ -536,7 +539,7 @@ exports.searchPublicMovies = async (req, res) => {
       title: m.title,
       poster: m.poster?.url,
       responsivePosters: m.poster?.responsive,
-      reviews: { ...reviews },
+      reviews,
     };
   };
   const results = await Promise.all(movies.map(mapMovies));
