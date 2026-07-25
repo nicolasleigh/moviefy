@@ -19,7 +19,7 @@ export const generateRandomByte = () => {
 };
 
 export const handleNotFound = (req, res) => {
-  this.sendError(res, "Not Found!", 404);
+  sendError(res, "Not Found!", 404);
 };
 
 export const uploadImageToCloud = async (file) => {
