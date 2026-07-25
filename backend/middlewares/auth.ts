@@ -2,6 +2,13 @@ import jwt from "jsonwebtoken";
 import { sendError } from "../utils/helper";
 import User from "../models/user";
 
+// 启动时校验 JWT_SECRET 已配置且非默认值
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
+  throw new Error(
+    "JWT_SECRET is not set or too weak. Generate a strong one with: openssl rand -hex 32"
+  );
+}
+
 export const isAuth = async (req, res, next) => {
   const token = req.headers?.authorization;
 
