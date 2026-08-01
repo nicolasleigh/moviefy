@@ -5,6 +5,7 @@ import {
   averageRatingPipeline,
   relatedMovieAggregation,
   getAverageRatings,
+  getAverageRatingsMap,
   topRatedMoviesPipeline,
 } from "../utils/helper";
 import Movie from "../models/movie";
@@ -436,18 +437,16 @@ export const getRelatedMovies = async (req, res) => {
   const movies = await Movie.aggregate(relatedMovieAggregation(movie.tags, movie._id));
   // console.log('controllers-movie: ', movies);
 
-  const mapMovies = async (m) => {
-    const reviews = await getAverageRatings(m._id);
-    return {
-      id: m._id,
-      title: m.title,
-      poster: m.poster,
-      responsivePosters: m.responsivePosters,
-      reviews,
-      // reviews: { ...reviews },
-    };
-  };
-  const relatedMovies = await Promise.all(movies.map(mapMovies));
+  // 一次性批量查询所有相关电影的评分，避免 N+1 查询
+  const ratingsMap = await getAverageRatingsMap(movies.map((m) => m._id));
+
+  const relatedMovies = movies.map((m) => ({
+    id: m._id,
+    title: m.title,
+    poster: m.poster,
+    responsivePosters: m.responsivePosters,
+    reviews: ratingsMap.get(m._id.toString()) || {},
+  }));
 
   res.json({ movies: relatedMovies });
 };
@@ -457,18 +456,16 @@ export const getTopRatedMovies = async (req, res) => {
 
   const movies = await Movie.aggregate(topRatedMoviesPipeline(genre));
 
-  const mapMovies = async (m) => {
-    const reviews = await getAverageRatings(m._id);
+  // 一次性批量查询所有电影的评分，避免 N+1 查询
+  const ratingsMap = await getAverageRatingsMap(movies.map((m) => m._id));
 
-    return {
-      id: m._id,
-      title: m.title,
-      poster: m.poster,
-      responsivePosters: m.responsivePosters,
-      reviews,
-    };
-  };
-  const topRatedMovies = await Promise.all(movies.map(mapMovies));
+  const topRatedMovies = movies.map((m) => ({
+    id: m._id,
+    title: m.title,
+    poster: m.poster,
+    responsivePosters: m.responsivePosters,
+    reviews: ratingsMap.get(m._id.toString()) || {},
+  }));
 
   res.json({ movies: topRatedMovies });
 };
@@ -482,18 +479,16 @@ export const searchPublicMovies = async (req, res) => {
     status: "public",
   });
 
-  const mapMovies = async (m) => {
-    const reviews = await getAverageRatings(m._id);
+  // 一次性批量查询所有搜索结果的评分，避免 N+1 查询
+  const ratingsMap = await getAverageRatingsMap(movies.map((m) => m._id));
 
-    return {
-      id: m._id,
-      title: m.title,
-      poster: m.poster?.url,
-      responsivePosters: m.poster?.responsive,
-      reviews,
-    };
-  };
-  const results = await Promise.all(movies.map(mapMovies));
+  const results = movies.map((m) => ({
+    id: m._id,
+    title: m.title,
+    poster: m.poster?.url,
+    responsivePosters: m.poster?.responsive,
+    reviews: ratingsMap.get(m._id.toString()) || {},
+  }));
 
   res.json({
     results,

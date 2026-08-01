@@ -149,3 +149,36 @@ export const getAverageRatings = async (movieId) => {
 
   return reviews;
 };
+
+/**
+ * 批量查询多个电影的评分 — 将 N 次查询合并为 1 次
+ * 用于替代在循环中逐个调用 getAverageRatings 的 N+1 模式
+ * @param movieIds ObjectId[] 电影 ID 数组
+ * @returns Map<string, { ratingAvg: string, reviewCount: number }>
+ */
+export const getAverageRatingsMap = async (movieIds) => {
+  if (!movieIds.length) return new Map();
+
+  const aggregatedResponse = await Review.aggregate([
+    {
+      $match: { parentMovie: { $in: movieIds } },
+    },
+    {
+      $group: {
+        _id: "$parentMovie",
+        ratingAvg: { $avg: "$rating" },
+        reviewCount: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const map = new Map();
+  for (const item of aggregatedResponse) {
+    map.set(item._id.toString(), {
+      ratingAvg: parseFloat(item.ratingAvg).toFixed(1),
+      reviewCount: item.reviewCount,
+    });
+  }
+
+  return map;
+};
