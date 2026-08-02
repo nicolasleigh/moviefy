@@ -1,9 +1,10 @@
 import { isValidObjectId } from "mongoose";
+import type { Request, Response } from "express";
 import Actor from "../models/actor";
 import { sendError, uploadImageToCloud, formateActor } from "../utils/helper";
 import cloudinary from "../cloud";
 
-export const createActor = async (req, res) => {
+export const createActor = async (req: Request, res: Response) => {
   const { name, about, gender } = req.body;
   const { file } = req;
 
@@ -19,7 +20,7 @@ export const createActor = async (req, res) => {
   res.status(201).json({ actor: formateActor(newActor) });
 };
 
-export const updateActor = async (req, res) => {
+export const updateActor = async (req: Request, res: Response) => {
   const { name, about, gender } = req.body;
   const { file } = req;
   const { actorId } = req.params;
@@ -57,7 +58,7 @@ export const updateActor = async (req, res) => {
   res.status(201).json({ actor: formateActor(actor) });
 };
 
-export const removeActor = async (req, res) => {
+export const removeActor = async (req: Request, res: Response) => {
   const { actorId } = req.params;
 
   if (!isValidObjectId(actorId)) return sendError(res, "Invalid Actor ID");
@@ -80,7 +81,7 @@ export const removeActor = async (req, res) => {
   res.json({ message: "Actor removed successfully" }); // Trans
 };
 
-export const searchActor = async (req, res) => {
+export const searchActor = async (req: Request, res: Response) => {
   // const result = await Actor.find({ $text: { $search: `"${query.name}"` } });
   // const { name } = req.query;
   // if (!name.trim()) return sendError(res, 'Invalid request!');
@@ -99,7 +100,7 @@ export const searchActor = async (req, res) => {
   res.json({ results: results });
 };
 
-export const getLatestActors = async (req, res) => {
+export const getLatestActors = async (req: Request, res: Response) => {
   const result = await Actor.find().sort({ createdAt: "desc" }).limit(12);
 
   const actors = result.map((actor) => formateActor(actor));
@@ -107,7 +108,7 @@ export const getLatestActors = async (req, res) => {
   res.json(actors);
 };
 
-export const getSingleActor = async (req, res) => {
+export const getSingleActor = async (req: Request, res: Response) => {
   const { id } = req.params;
 
   if (!isValidObjectId(id)) return sendError(res, "Invalid request");
@@ -117,14 +118,15 @@ export const getSingleActor = async (req, res) => {
   res.json({ actor: formateActor(actor) });
 };
 
-export const getActors = async (req, res) => {
-  const { pageNo, limit } = req.query;
+export const getActors = async (req: Request, res: Response) => {
+  const pageNo = parseInt(req.query.pageNo as string) || 0;
+  const limit = parseInt(req.query.limit as string) || 10;
   const actorCount = await Actor.countDocuments();
 
   const actors = await Actor.find({})
     .sort({ createdAt: -1 })
-    .skip(parseInt(pageNo) * parseInt(limit))
-    .limit(parseInt(limit));
+    .skip(pageNo * limit)
+    .limit(limit);
 
   const profiles = actors.map((actor) => formateActor(actor));
   res.json({

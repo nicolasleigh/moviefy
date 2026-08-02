@@ -1,6 +1,14 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+export interface PasswordResetTokenDoc {
+  _id: mongoose.Types.ObjectId;
+  owner: mongoose.Types.ObjectId;
+  token: string;
+  createdAt: Date;
+  compareToken(token: string): Promise<boolean>;
+}
+
 const passwordResetTokenSchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -25,9 +33,12 @@ passwordResetTokenSchema.pre("save", async function (next) {
   next();
 });
 
-passwordResetTokenSchema.methods.compareToken = async function (token) {
+passwordResetTokenSchema.methods.compareToken = async function (token: string) {
   const result = await bcrypt.compare(token, this.token);
   return result;
 };
 
-export default mongoose.model("PasswordResetToken", passwordResetTokenSchema);
+export default mongoose.model<PasswordResetTokenDoc>(
+  "PasswordResetToken",
+  passwordResetTokenSchema
+);

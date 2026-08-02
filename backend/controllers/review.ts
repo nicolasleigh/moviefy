@@ -1,9 +1,11 @@
 import { isValidObjectId } from "mongoose";
+import type { Request, Response } from "express";
+import type { Types } from "mongoose";
 import { sendError, getAverageRatings } from "../utils/helper";
 import Movie from "../models/movie";
 import Review from "../models/review";
 
-export const addReview = async (req, res) => {
+export const addReview = async (req: Request, res: Response) => {
   const { movieId } = req.params;
   const { content, rating } = req.body;
   const userId = req.user._id;
@@ -43,7 +45,7 @@ export const addReview = async (req, res) => {
   res.json({ message: "Your review has been added", reviews }); // Trans
 };
 
-export const updateReview = async (req, res) => {
+export const updateReview = async (req: Request, res: Response) => {
   const { reviewId } = req.params;
   const { content, rating } = req.body;
   const userId = req.user._id;
@@ -61,7 +63,7 @@ export const updateReview = async (req, res) => {
   res.json({ message: "Your review has been updated" }); // Trans
 };
 
-export const removeReview = async (req, res) => {
+export const removeReview = async (req: Request, res: Response) => {
   const { reviewId } = req.params;
   const userId = req.user._id;
 
@@ -71,6 +73,7 @@ export const removeReview = async (req, res) => {
   if (!review) return sendError(res, "Invalid request, review not found"); // Trans
 
   const movie = await Movie.findById(review.parentMovie).select("reviews");
+  if (!movie) return sendError(res, "Movie not found", 404);
   movie.reviews = movie.reviews.filter((rId) => rId.toString() !== reviewId);
 
   await Review.findByIdAndDelete(reviewId);
@@ -80,13 +83,20 @@ export const removeReview = async (req, res) => {
   res.json({ message: "Review removed successfully" }); // Trans
 };
 
-export const getReviewsByMovie = async (req, res) => {
+export const getReviewsByMovie = async (req: Request, res: Response) => {
   const { movieId } = req.params;
 
   if (!isValidObjectId(movieId)) return sendError(res, "Invalid movie ID"); // Trans
 
+  interface PopulatedReview {
+    _id: Types.ObjectId;
+    owner: { _id: Types.ObjectId; name: string };
+    content: string;
+    rating: number;
+  }
+
   const movie = await Movie.findById(movieId)
-    .populate({
+    .populate<{ reviews: PopulatedReview[] }>({
       path: "reviews",
       populate: {
         path: "owner",
@@ -94,6 +104,8 @@ export const getReviewsByMovie = async (req, res) => {
       },
     })
     .select("reviews title");
+
+  if (!movie) return sendError(res, "Movie not found", 404);
 
   const reviews = movie.reviews.map((r) => {
     const { owner, content, rating, _id: reviewID } = r;

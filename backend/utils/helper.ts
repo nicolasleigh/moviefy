@@ -1,8 +1,10 @@
 import crypto from "crypto";
+import type { Request, Response } from "express";
+import type { Types } from "mongoose";
 import cloudinary from "../cloud";
 import Review from "../models/review";
 
-export const sendError = (res, error, statusCode = 401) => {
+export const sendError = (res: Response, error: string, statusCode = 401) => {
   res.status(statusCode).json({ error });
 };
 
@@ -18,11 +20,11 @@ export const generateRandomByte = () => {
   });
 };
 
-export const handleNotFound = (req, res) => {
+export const handleNotFound = (req: Request, res: Response) => {
   sendError(res, "Not Found!", 404);
 };
 
-export const uploadImageToCloud = async (file) => {
+export const uploadImageToCloud = async (file: string) => {
   const { secure_url: url, public_id } = await cloudinary.uploader.upload(file, {
     gravity: "face",
     height: 500,
@@ -32,7 +34,7 @@ export const uploadImageToCloud = async (file) => {
   return { url, public_id };
 };
 
-export const formateActor = (actor) => {
+export const formateActor = (actor: any) => {
   const { name, gender, about, _id, avatar } = actor;
   return {
     id: _id,
@@ -43,7 +45,7 @@ export const formateActor = (actor) => {
   };
 };
 
-export const averageRatingPipeline = (movieId) => {
+export const averageRatingPipeline = (movieId: any) => {
   return [
     // {
     //   $lookup: {
@@ -70,7 +72,7 @@ export const averageRatingPipeline = (movieId) => {
   ];
 };
 
-export const relatedMovieAggregation = (tags, movieId) => {
+export const relatedMovieAggregation = (tags: any[], movieId: any): any[] => {
   return [
     // {
     //   $lookup: {
@@ -99,8 +101,8 @@ export const relatedMovieAggregation = (tags, movieId) => {
   ];
 };
 
-export const topRatedMoviesPipeline = (genre) => {
-  const matchOptions = {
+export const topRatedMoviesPipeline = (genre?: string): any[] => {
+  const matchOptions: Record<string, any> = {
     reviews: { $exists: true, $ne: [] },
     status: { $eq: "public" },
   };
@@ -136,10 +138,12 @@ export const topRatedMoviesPipeline = (genre) => {
   ];
 };
 
-export const getAverageRatings = async (movieId) => {
+export const getAverageRatings = async (
+  movieId: any
+): Promise<{ ratingAvg?: string; reviewCount?: number }> => {
   const [aggregatedResponse] = await Review.aggregate(averageRatingPipeline(movieId));
 
-  const reviews = {};
+  const reviews: { ratingAvg?: string; reviewCount?: number } = {};
 
   if (aggregatedResponse) {
     const { ratingAvg, reviewCount } = aggregatedResponse;
@@ -156,7 +160,9 @@ export const getAverageRatings = async (movieId) => {
  * @param movieIds ObjectId[] 电影 ID 数组
  * @returns Map<string, { ratingAvg: string, reviewCount: number }>
  */
-export const getAverageRatingsMap = async (movieIds) => {
+export const getAverageRatingsMap = async (
+  movieIds: (Types.ObjectId | string)[]
+): Promise<Map<string, { ratingAvg: string; reviewCount: number }>> => {
   if (!movieIds.length) return new Map();
 
   const aggregatedResponse = await Review.aggregate([

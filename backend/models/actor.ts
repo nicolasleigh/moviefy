@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+export interface ActorDoc {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  about: string;
+  gender: string;
+  avatar?: { url: string; public_id: string };
+}
+
 // SchemaTypes
 const actorSchema = new mongoose.Schema(
   {
@@ -30,4 +38,4 @@ const actorSchema = new mongoose.Schema(
 // Text Index
 actorSchema.index({ name: "text" });
 
-export default mongoose.model("Actor", actorSchema);
+export default mongoose.model<ActorDoc>("Actor", actorSchema);

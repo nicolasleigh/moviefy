@@ -1,4 +1,6 @@
-export const parseData = (req, res, next) => {
+import type { Request, Response, NextFunction } from "express";
+
+export const parseData = (req: Request, res: Response, next: NextFunction) => {
   const { cast, genres, tags } = req.body;
 
   // if (trailer) req.body.trailer = JSON.parse(trailer);

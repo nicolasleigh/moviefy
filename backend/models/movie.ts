@@ -1,6 +1,24 @@
 import mongoose from "mongoose";
 import genres from "../utils/genres";
 
+export interface MovieDoc {
+  _id: mongoose.Types.ObjectId;
+  title: string;
+  storyLine: string;
+  director?: mongoose.Types.ObjectId;
+  releaseDate: Date;
+  status: "public" | "private";
+  type: string;
+  genres: string[];
+  tags: string[];
+  cast: mongoose.Types.ObjectId[];
+  writer?: mongoose.Types.ObjectId;
+  poster?: { url: string; public_id: string; responsive: string[] };
+  video?: { url: string; public_id: string };
+  reviews: mongoose.Types.ObjectId[];
+  language: string;
+}
+
 const movieSchema = new mongoose.Schema(
   {
     title: {
@@ -75,7 +93,7 @@ const movieSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Movie = mongoose.model("Movie", movieSchema);
+const Movie = mongoose.model<MovieDoc>("Movie", movieSchema);
 export default Movie;
 
 // module.exports = mongoose.model('Movie', movieSchema);

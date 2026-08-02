@@ -1,4 +1,5 @@
 import { check, validationResult, body } from "express-validator";
+import type { Request, Response, NextFunction } from "express";
 import genres from "../utils/genres";
 import { isValidObjectId } from "mongoose";
 
@@ -100,7 +101,7 @@ export const validateMovie = [
 
 export const validateRatings = check("rating", "Rating must be a number between 0 and 10").isFloat({ min: 0, max: 10 });
 
-export const validate = (req, res, next) => {
+export const validate = (req: Request, res: Response, next: NextFunction) => {
   // validationResult
   // https://express-validator.github.io/docs/api/validation-result
   const error = validationResult(req).array();

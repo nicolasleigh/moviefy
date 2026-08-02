@@ -1,6 +1,16 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+export interface UserDoc {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  email: string;
+  password: string;
+  isVerified: boolean;
+  role: "user" | "admin";
+  comparePassword(password: string): Promise<boolean>;
+}
+
 const userSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -37,9 +47,9 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-userSchema.methods.comparePassword = async function (password) {
+userSchema.methods.comparePassword = async function (password: string) {
   const result = await bcrypt.compare(password, this.password);
   return result;
 };
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model<UserDoc>("User", userSchema);

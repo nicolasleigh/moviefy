@@ -1,4 +1,6 @@
 import multer from "multer";
+import type { Request } from "express";
+import type { FileFilterCallback } from "multer";
 const storage = multer.diskStorage({});
 
 // Nodejs进阶：基于express+multer的文件上传
@@ -9,18 +11,18 @@ const storage = multer.diskStorage({});
 
 // https://www.npmjs.com/package/multer
 
-const imageFileFilter = (req, file, cb) => {
+const imageFileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   // console.log(file);
   if (!file.mimetype.startsWith("image")) {
-    cb("Supported only image files", false); // Trans
+    cb(new Error("Supported only image files")); // Trans
   }
   cb(null, true);
 };
 
-const videoFileFilter = (req, file, cb) => {
+const videoFileFilter = (req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
   // console.log(file);
   if (!file.mimetype.startsWith("video")) {
-    cb("Supported only video files", false); // Trans
+    cb(new Error("Supported only video files")); // Trans
   }
   cb(null, true);
 };

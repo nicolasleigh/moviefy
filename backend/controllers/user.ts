@@ -1,12 +1,13 @@
 import jwt from "jsonwebtoken";
+import type { Request, Response, NextFunction } from "express";
 import User from "../models/user";
 import EmailVerificationToken from "../models/emailVerificationToken";
 import PasswordResetToken from "../models/passwordResetToken";
 import { isValidObjectId } from "mongoose";
-import { generateOTP, generateMailTransporter, sendEmail } from "../utils/mail";
+import { generateOTP, generateMailTransporter } from "../utils/mail";
 import { sendError, generateRandomByte } from "../utils/helper";
 
-export const create = async (req, res) => {
+export const create = async (req: Request, res: Response) => {
   const { name, email, password } = req.body;
 
   const oldUser = await User.findOne({ email });
@@ -67,7 +68,7 @@ export const create = async (req, res) => {
   });
 };
 
-export const verifyEmail = async (req, res) => {
+export const verifyEmail = async (req: Request, res: Response) => {
   const { userId, OTP } = req.body;
 
   if (!isValidObjectId(userId)) return res.json({ error: "Invalid User ID" }); // Trans
@@ -104,7 +105,7 @@ export const verifyEmail = async (req, res) => {
 
   //     await sendEmail(user.name, user.email, 'Welcome Message', htmlContent);
 
-  const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+  const jwtToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET!);
   res.json({
     user: {
       id: user._id,
@@ -118,7 +119,7 @@ export const verifyEmail = async (req, res) => {
   });
 };
 
-export const resendEmailVerificationToken = async (req, res) => {
+export const resendEmailVerificationToken = async (req: Request, res: Response) => {
   const { userId } = req.body;
 
   const user = await User.findById(userId);
@@ -166,7 +167,7 @@ export const resendEmailVerificationToken = async (req, res) => {
   });
 };
 
-export const forgetPassword = async (req, res) => {
+export const forgetPassword = async (req: Request, res: Response) => {
   const { email } = req.body;
   if (!email) return sendError(res, "Email is required"); // Trans
   const user = await User.findOne({ email });
@@ -211,14 +212,15 @@ export const forgetPassword = async (req, res) => {
   });
 };
 
-export const sendResetPasswordTokenStatus = (req, res) => {
+export const sendResetPasswordTokenStatus = (req: Request, res: Response) => {
   res.json({ valid: true });
 };
 
-export const resetPassword = async (req, res) => {
+export const resetPassword = async (req: Request, res: Response) => {
   const { newPassword, userId } = req.body;
 
   const user = await User.findById(userId);
+  if (!user) return sendError(res, "User not found", 404);
   const matched = await user.comparePassword(newPassword);
   if (matched) return sendError(res, "New password must be different from old password"); // Trans
 
@@ -249,7 +251,7 @@ export const resetPassword = async (req, res) => {
   res.json({ message: "Password reset successfully" }); // Trans
 };
 
-export const signIn = async (req, res, next) => {
+export const signIn = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
   // try {
@@ -261,7 +263,7 @@ export const signIn = async (req, res, next) => {
 
   const { _id, name, role, isVerified } = user;
 
-  const jwtToken = jwt.sign({ userId: _id }, process.env.JWT_SECRET);
+  const jwtToken = jwt.sign({ userId: _id }, process.env.JWT_SECRET!);
 
   res.json({
     user: { id: _id, name, email, role, token: jwtToken, isVerified },

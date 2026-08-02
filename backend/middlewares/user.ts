@@ -1,8 +1,9 @@
 import { isValidObjectId } from "mongoose";
+import type { Request, Response, NextFunction } from "express";
 import PasswordResetToken from "../models/passwordResetToken";
 import { sendError } from "../utils/helper";
 
-export const isValidPassResetToken = async (req, res, next) => {
+export const isValidPassResetToken = async (req: Request, res: Response, next: NextFunction) => {
   const { token, userId } = req.body;
 
   if (!token.trim() || !isValidObjectId(userId)) return sendError(res, "Invalid request");
@@ -13,6 +14,6 @@ export const isValidPassResetToken = async (req, res, next) => {
   const matched = await resetToken.compareToken(token);
   if (!matched) return sendError(res, "Invalid request");
 
-  req.resetToken = resetToken;
+  req.resetToken = resetToken as any;
   next();
 };

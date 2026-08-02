@@ -1,5 +1,13 @@
 import mongoose from "mongoose";
 
+export interface ReviewDoc {
+  _id: mongoose.Types.ObjectId;
+  owner: mongoose.Types.ObjectId;
+  parentMovie: mongoose.Types.ObjectId;
+  content: string;
+  rating: number;
+}
+
 const reviewSchema = new mongoose.Schema({
   // owner parentMovie rating content
   owner: {
@@ -22,4 +30,4 @@ const reviewSchema = new mongoose.Schema({
   },
 });
 
-export default mongoose.model("Review", reviewSchema);
+export default mongoose.model<ReviewDoc>("Review", reviewSchema);
