@@ -16,8 +16,9 @@ import { isValidObjectId } from "mongoose";
 
 export const createMovie = async (req: Request, res: Response) => {
   const { body } = req;
+  // multer fields() 无文件上传时 req.files 为 {}，而非 undefined，因此需检查 video 文件本身
   const files = req.files as { video: Express.Multer.File[]; poster: Express.Multer.File[] } | undefined;
-  if (!files) {
+  if (!files?.video?.[0]) {
     return sendError(res, "File is missing"); // Trans
   }
 
